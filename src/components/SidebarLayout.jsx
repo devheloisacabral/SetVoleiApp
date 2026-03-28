@@ -13,7 +13,7 @@ import Sidebar from './Sidebar';
 
 const DRAWER_WIDTH = Dimensions.get('window').width * 0.75;
 
-export default function SidebarLayout({ children }) {
+export default function SidebarLayout({ children, title = 'SET Vôlei' }) {
   const [visible, setVisible] = useState(false);
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
 
@@ -44,7 +44,7 @@ export default function SidebarLayout({ children }) {
         >
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>SET Vôlei</Text>
+        <Text style={styles.headerTitle}>{title}</Text>
         <View style={{ width: 40 }} />
       </View>
 
