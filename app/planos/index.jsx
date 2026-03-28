@@ -6,19 +6,23 @@ import {
 import { Feather } from '@expo/vector-icons';
 import SidebarLayout from '../../src/components/SidebarLayout';
 import FeedbackModal from '../../src/components/FeedbackModal';
-import { unidadesService } from '../../src/services/unidades';
+import { planosService } from '../../src/services/planos';
 
-const EMPTY_FORM = { nome: '', endereco: '', capacidade_maxima: '' };
-const EMPTY_ERRORS = { nome: '', endereco: '', capacidade_maxima: '' };
+const EMPTY_FORM = { nome: '', valor: '', numero_checkins_mensais: '' };
+const EMPTY_ERRORS = { nome: '', valor: '', numero_checkins_mensais: '' };
 
 function validate(form) {
   const errors = { ...EMPTY_ERRORS };
   if (!form.nome.trim()) errors.nome = 'O nome é obrigatório';
-  if (!form.endereco.trim()) errors.endereco = 'O endereço é obrigatório';
-  if (!form.capacidade_maxima.trim()) {
-    errors.capacidade_maxima = 'A capacidade é obrigatória';
-  } else if (isNaN(parseInt(form.capacidade_maxima)) || parseInt(form.capacidade_maxima) <= 0) {
-    errors.capacidade_maxima = 'Deve ser um número maior que zero';
+  if (!form.valor.trim()) {
+    errors.valor = 'O valor é obrigatório';
+  } else if (isNaN(parseFloat(form.valor.replace(',', '.'))) || parseFloat(form.valor.replace(',', '.')) <= 0) {
+    errors.valor = 'Deve ser um valor maior que zero';
+  }
+  if (!form.numero_checkins_mensais.trim()) {
+    errors.numero_checkins_mensais = 'A quantidade de check-ins é obrigatória';
+  } else if (isNaN(parseInt(form.numero_checkins_mensais)) || parseInt(form.numero_checkins_mensais) <= 0) {
+    errors.numero_checkins_mensais = 'Deve ser um número maior que zero';
   }
   return errors;
 }
@@ -27,8 +31,8 @@ function hasErrors(errors) {
   return Object.values(errors).some(Boolean);
 }
 
-export default function UnidadesScreen() {
-  const [unidades, setUnidades] = useState([]);
+export default function PlanosScreen() {
+  const [planos, setPlanos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [createVisible, setCreateVisible] = useState(false);
@@ -49,19 +53,19 @@ export default function UnidadesScreen() {
     setFeedback({ visible: true, type, message });
   }
 
-  async function fetchUnidades() {
+  async function fetchPlanos() {
     try {
       setLoading(true);
-      const { data } = await unidadesService.listar();
-      setUnidades(data);
+      const { data } = await planosService.listar();
+      setPlanos(data);
     } catch {
-      showFeedback('error', 'Não foi possível carregar as unidades.');
+      showFeedback('error', 'Não foi possível carregar os planos.');
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => { fetchUnidades(); }, []);
+  useEffect(() => { fetchPlanos(); }, []);
 
   async function handleCreate() {
     const errors = validate(createForm);
@@ -70,26 +74,26 @@ export default function UnidadesScreen() {
 
     try {
       setCreating(true);
-      await unidadesService.criar({
+      await planosService.criar({
         nome: createForm.nome.trim(),
-        endereco: createForm.endereco.trim() || null,
-        capacidade_maxima: parseInt(createForm.capacidade_maxima) || 0,
+        valor: parseFloat(createForm.valor.replace(',', '.')),
+        numero_checkins_mensais: parseInt(createForm.numero_checkins_mensais),
       });
       setCreateVisible(false);
-      fetchUnidades();
+      fetchPlanos();
     } catch (err) {
-      showFeedback('error', err?.response?.data?.message ?? 'Não foi possível criar a unidade.');
+      showFeedback('error', err?.response?.data?.message ?? 'Não foi possível criar o plano.');
     } finally {
       setCreating(false);
     }
   }
 
-  function openEdit(unidade) {
-    setSelected(unidade);
+  function openEdit(plano) {
+    setSelected(plano);
     setEditForm({
-      nome: unidade.nome,
-      endereco: unidade.endereco ?? '',
-      capacidade_maxima: String(unidade.capacidade_maxima),
+      nome: plano.nome,
+      valor: String(plano.valor).replace('.', ','),
+      numero_checkins_mensais: String(plano.numero_checkins_mensais),
     });
     setEditErrors(EMPTY_ERRORS);
     setEditVisible(true);
@@ -102,13 +106,13 @@ export default function UnidadesScreen() {
 
     try {
       setSaving(true);
-      await unidadesService.atualizar(selected.id, {
+      await planosService.atualizar(selected.id, {
         nome: editForm.nome.trim(),
-        endereco: editForm.endereco.trim() || null,
-        capacidade_maxima: parseInt(editForm.capacidade_maxima) || 0,
+        valor: parseFloat(editForm.valor.replace(',', '.')),
+        numero_checkins_mensais: parseInt(editForm.numero_checkins_mensais),
       });
       setEditVisible(false);
-      fetchUnidades();
+      fetchPlanos();
     } catch (err) {
       showFeedback('error', err?.response?.data?.message ?? 'Não foi possível salvar as alterações.');
     } finally {
@@ -119,25 +123,18 @@ export default function UnidadesScreen() {
   async function handleDelete() {
     try {
       setDeleting(true);
-      await unidadesService.deletar(selected.id);
+      await planosService.inativar(selected.id);
       setEditVisible(false);
-      fetchUnidades();
-      showFeedback('success', `Unidade "${selected.nome}" excluída com sucesso.`);
+      fetchPlanos();
+      showFeedback('success', `Plano "${selected.nome}" excluído com sucesso.`);
     } catch (err) {
-      showFeedback('error', err?.response?.data?.message ?? 'Não foi possível excluir a unidade.');
+      showFeedback('error', err?.response?.data?.message ?? 'Não foi possível inativar o plano.');
     } finally {
       setDeleting(false);
     }
   }
 
-  function confirmDelete() {
-    setEditVisible(false);
-    setTimeout(() => {
-      handleDelete();
-    }, 300);
-  }
-
-  function renderUnidade({ item, index }) {
+  function renderPlano({ item, index }) {
     return (
       <TouchableOpacity style={styles.card} onPress={() => openEdit(item)} activeOpacity={0.75}>
         <View style={styles.cardAccent} />
@@ -150,16 +147,13 @@ export default function UnidadesScreen() {
             </View>
           </View>
           <Text style={styles.cardNome}>{item.nome}</Text>
+          <View style={styles.cardValor}>
+            <Text style={styles.cardValorText}>R$ {parseFloat(item.valor).toFixed(2).replace('.', ',')}</Text>
+          </View>
           <View style={styles.cardMeta}>
-            {item.endereco ? (
-              <View style={styles.metaItem}>
-                <Feather name="map-pin" size={11} color="#4B5563" />
-                <Text style={styles.metaText}>{item.endereco}</Text>
-              </View>
-            ) : null}
             <View style={styles.metaItem}>
-              <Feather name="users" size={11} color="#4B5563" />
-              <Text style={styles.metaText}>{item.capacidade_maxima} vagas</Text>
+              <Feather name="check-circle" size={11} color="#4B5563" />
+              <Text style={styles.metaText}>{item.numero_checkins_mensais} check-ins/mês</Text>
             </View>
           </View>
         </View>
@@ -169,12 +163,12 @@ export default function UnidadesScreen() {
   }
 
   return (
-    <SidebarLayout title="Unidades">
+    <SidebarLayout title="Planos">
       <View style={styles.container}>
         <View style={styles.screenHeader}>
-          <Text style={styles.screenTitle}>Gerenciar Unidades</Text>
+          <Text style={styles.screenTitle}>Gerenciar Planos</Text>
           <Text style={styles.screenSubtitle}>
-            {unidades.length} unidade{unidades.length !== 1 ? 's' : ''} cadastrada{unidades.length !== 1 ? 's' : ''}
+            {planos.length} plano{planos.length !== 1 ? 's' : ''} cadastrado{planos.length !== 1 ? 's' : ''}
           </Text>
         </View>
 
@@ -184,19 +178,19 @@ export default function UnidadesScreen() {
           </View>
         ) : (
           <FlatList
-            data={unidades}
+            data={planos}
             keyExtractor={(item) => item.id}
-            renderItem={renderUnidade}
+            renderItem={renderPlano}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <View style={styles.emptyIcon}>
-                  <Feather name="map-pin" size={28} color="#374151" />
+                  <Feather name="clipboard" size={28} color="#374151" />
                 </View>
-                <Text style={styles.emptyTitle}>Nenhuma unidade</Text>
-                <Text style={styles.emptySubtitle}>Adicione a primeira unidade clicando no botão abaixo</Text>
+                <Text style={styles.emptyTitle}>Nenhum plano cadastrado</Text>
+                <Text style={styles.emptySubtitle}>Adicione o primeiro plano clicando no botão abaixo</Text>
               </View>
             }
-            contentContainerStyle={unidades.length === 0 ? styles.flatListEmpty : styles.flatList}
+            contentContainerStyle={planos.length === 0 ? styles.flatListEmpty : styles.flatList}
             showsVerticalScrollIndicator={false}
           />
         )}
@@ -214,7 +208,7 @@ export default function UnidadesScreen() {
           <View style={styles.modalContainer}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Nova Unidade</Text>
+              <Text style={styles.modalTitle}>Novo Plano</Text>
               <TouchableOpacity style={styles.closeBtn} onPress={() => setCreateVisible(false)}>
                 <Feather name="x" size={16} color="#9CA3AF" />
               </TouchableOpacity>
@@ -227,7 +221,7 @@ export default function UnidadesScreen() {
             >
               {creating
                 ? <ActivityIndicator size="small" color="#000" />
-                : <Text style={styles.primaryButtonText}>Criar unidade</Text>}
+                : <Text style={styles.primaryButtonText}>Criar plano</Text>}
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -238,7 +232,7 @@ export default function UnidadesScreen() {
           <View style={styles.modalContainer}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Editar Unidade</Text>
+              <Text style={styles.modalTitle}>Editar Plano</Text>
               <TouchableOpacity style={styles.closeBtn} onPress={() => setEditVisible(false)}>
                 <Feather name="x" size={16} color="#9CA3AF" />
               </TouchableOpacity>
@@ -255,15 +249,15 @@ export default function UnidadesScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.dangerButton, deleting && styles.buttonDisabled]}
-              onPress={confirmDelete}
+              onPress={handleDelete}
               disabled={deleting}
             >
               {deleting
                 ? <ActivityIndicator size="small" color="#EF4444" />
                 : (
                   <View style={styles.dangerButtonInner}>
-                    <Feather name="trash-2" size={14} color="#EF4444" />
-                    <Text style={styles.dangerButtonText}>Excluir unidade</Text>
+                    <Feather name="slash" size={14} color="#EF4444" />
+                    <Text style={styles.dangerButtonText}>Excluir plano</Text>
                   </View>
                 )}
             </TouchableOpacity>
@@ -291,33 +285,34 @@ function FormFields({ form, setForm, errors, setErrors }) {
       <Text style={styles.label}>Nome *</Text>
       <TextInput
         style={[styles.input, errors.nome ? styles.inputError : null]}
-        placeholder="Ex: Unidade Centro"
+        placeholder="Ex: Plano Mensal"
         placeholderTextColor="#374151"
         value={form.nome}
         onChangeText={(v) => { setForm((p) => ({ ...p, nome: v })); clearError('nome'); }}
       />
       {errors.nome ? <Text style={styles.errorText}>{errors.nome}</Text> : null}
 
-      <Text style={styles.label}>Endereço</Text>
+      <Text style={styles.label}>Valor (R$) *</Text>
       <TextInput
-        style={[styles.input, errors.endereco ? styles.inputError : null]}
-        placeholder="Ex: Rua das Flores, 123"
+        style={[styles.input, errors.valor ? styles.inputError : null]}
+        placeholder="Ex: 150,00"
         placeholderTextColor="#374151"
-        value={form.endereco}
-        onChangeText={(v) => { setForm((p) => ({ ...p, endereco: v })); clearError('endereco'); }}
+        value={form.valor}
+        onChangeText={(v) => { setForm((p) => ({ ...p, valor: v })); clearError('valor'); }}
+        keyboardType="decimal-pad"
       />
-      {errors.endereco ? <Text style={styles.errorText}>{errors.endereco}</Text> : null}
+      {errors.valor ? <Text style={styles.errorText}>{errors.valor}</Text> : null}
 
-      <Text style={styles.label}>Capacidade máxima</Text>
+      <Text style={styles.label}>Check-ins mensais *</Text>
       <TextInput
-        style={[styles.input, errors.capacidade_maxima ? styles.inputError : null]}
-        placeholder="Ex: 30"
+        style={[styles.input, errors.numero_checkins_mensais ? styles.inputError : null]}
+        placeholder="Ex: 12"
         placeholderTextColor="#374151"
-        value={form.capacidade_maxima}
-        onChangeText={(v) => { setForm((p) => ({ ...p, capacidade_maxima: v })); clearError('capacidade_maxima'); }}
+        value={form.numero_checkins_mensais}
+        onChangeText={(v) => { setForm((p) => ({ ...p, numero_checkins_mensais: v })); clearError('numero_checkins_mensais'); }}
         keyboardType="numeric"
       />
-      {errors.capacidade_maxima ? <Text style={styles.errorText}>{errors.capacidade_maxima}</Text> : null}
+      {errors.numero_checkins_mensais ? <Text style={styles.errorText}>{errors.numero_checkins_mensais}</Text> : null}
     </>
   );
 }
@@ -335,7 +330,9 @@ const styles = StyleSheet.create({
   cardBody: { flex: 1, padding: 16 },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   cardIndex: { color: '#374151', fontSize: 11, fontWeight: '700', letterSpacing: 1 },
-  cardNome: { color: '#F9FAFB', fontSize: 15, fontWeight: '700', marginBottom: 8 },
+  cardNome: { color: '#F9FAFB', fontSize: 15, fontWeight: '700', marginBottom: 6 },
+  cardValor: { marginBottom: 10 },
+  cardValorText: { color: '#FACC15', fontSize: 22, fontWeight: '800', letterSpacing: 0.5 },
   cardMeta: { flexDirection: 'row', gap: 14, flexWrap: 'wrap' },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   metaText: { color: '#4B5563', fontSize: 12 },
