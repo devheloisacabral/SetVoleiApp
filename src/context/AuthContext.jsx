@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
         const token = await getAccessToken();
         if (token) {
           const { data } = await api.get('/auth/me');
-          setUser(data);
+          setUser(data); 
         }
       } catch {
         await clearTokens();
@@ -27,9 +27,9 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     const { data } = await api.post('/auth/login', { email, password });
-    console.log('Login response:', JSON.stringify(data));
     await saveTokens(data.access_token, data.refresh_token);
-    setUser(data.user ?? data);
+    const { data: me } = await api.get('/auth/me');
+    setUser(me); 
   }
 
   async function logout() {
@@ -45,7 +45,17 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      login,
+      logout,
+      isAuthenticated: !!user,
+      role: user?.role ?? null, 
+      isAdmin: user?.role === 'admin',
+      isProfessor: user?.role === 'professor',
+      isAtleta: user?.role === 'atleta',
+    }}>
       {children}
     </AuthContext.Provider>
   );
