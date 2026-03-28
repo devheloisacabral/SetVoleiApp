@@ -77,15 +77,17 @@ export default function SidebarLayout({ children, title = 'SET Vôlei' }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#0F172A',
+    backgroundColor: '#000000',
     paddingHorizontal: 16,
     paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#111111',
   },
   menuButton: {
     width: 40,
