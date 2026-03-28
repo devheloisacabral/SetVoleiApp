@@ -42,8 +42,11 @@ export default function LoginScreen() {
         secureTextEntry
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Entrando...' : 'Entrar'}</Text> 
+        <Text style={styles.buttonText}>{loading ? 'Entrando...' : 'Entrar'}</Text>
         {/* todo: colocar um loading de verdade aqui dps */}
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.link} onPress={() => router.push('/register')}>
+        <Text style={styles.linkText}>Não tem conta? Solicitar cadastro</Text>
       </TouchableOpacity>
     </View>
   );
@@ -55,4 +58,6 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 16 },
   button: { backgroundColor: '#1565C0', padding: 14, borderRadius: 8, alignItems: 'center' },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  link: { marginTop: 20, alignItems: 'center' },
+  linkText: { color: '#1565C0', fontSize: 15 },
 });
