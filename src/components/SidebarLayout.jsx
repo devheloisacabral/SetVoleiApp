@@ -13,7 +13,7 @@ import Sidebar from './Sidebar';
 
 const DRAWER_WIDTH = Dimensions.get('window').width * 0.75;
 
-export default function SidebarLayout({ children }) {
+export default function SidebarLayout({ children, title = 'SET Vôlei' }) {
   const [visible, setVisible] = useState(false);
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
 
@@ -44,7 +44,7 @@ export default function SidebarLayout({ children }) {
         >
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>SET Vôlei</Text>
+        <Text style={styles.headerTitle}>{title}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -77,15 +77,17 @@ export default function SidebarLayout({ children }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#0F172A',
+    backgroundColor: '#000000',
     paddingHorizontal: 16,
     paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#111111',
   },
   menuButton: {
     width: 40,
