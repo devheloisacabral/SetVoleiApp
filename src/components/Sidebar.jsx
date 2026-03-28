@@ -17,6 +17,11 @@ const ROLE_LABEL = {
   atleta: 'Atleta',
 };
 
+const ROUTES = {
+  'Gerenciar Unidades': '/unidades',
+  'Lista de planos': '/planos',
+};
+
 const NAV_STRUCTURE = {
   admin: [
     { label: 'Dashboard', icon: 'home' },
@@ -29,7 +34,6 @@ const NAV_STRUCTURE = {
     {
       label: 'Planos', icon: 'clipboard', sub: [
         { label: 'Lista de planos', icon: 'list' },
-        { label: 'Novo plano', icon: 'plus-circle' },
       ],
     },
     {
