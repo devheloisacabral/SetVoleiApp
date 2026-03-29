@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 const ROLE_LABEL = {
   admin: 'Administrador',
@@ -93,6 +94,9 @@ export default function Sidebar({ onClose }) {
   function handleItemPress(label) {
     setActiveItem(label);
     onClose?.();
+    if (ROUTES[label]) {
+      router.push(ROUTES[label]);
+    }
   }
 
   function toggleGroup(label) {
@@ -104,13 +108,13 @@ export default function Sidebar({ onClose }) {
   return (
     <SafeAreaView style={styles.container}>
 
-      <View style={styles.logoContainer}>
-        {/*         <Image
+{/*       <View style={styles.logoContainer}>
+        <Image
           source={require('../../assets/set-logo.jpg')}
           style={styles.logo}
           resizeMode="contain"
-        /> */}
-      </View>
+        />
+      </View> */}
 
       <ScrollView style={styles.nav} showsVerticalScrollIndicator={false}>
         {items.map((item) => {
