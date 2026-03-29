@@ -12,11 +12,10 @@ function RootNavigator() {
     if (loading) return;
 
     const inAuthGroup = segments[0] === '(tabs)';
-    const inPublicRoute = segments[0] === 'login' || segments[0] === 'register';
 
-    if (!isAuthenticated && !inPublicRoute) {
+    if (!isAuthenticated && inAuthGroup) {
       router.replace('/login');
-    } else if (isAuthenticated && inPublicRoute) {
+    } else if (isAuthenticated && !inAuthGroup) {
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, loading, segments]);
